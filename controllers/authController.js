@@ -1,25 +1,45 @@
-const User = require('../models/User')
+const User = require('../models/User');
+
+const handleErrors = (err) => {
+    console.log(err.message, err.code);
+    const errors = { email: '', password: '' }
+
+    // Duplicate errors
+    if(err.code === 11000) {
+        errors.email = "this emails is already used!"
+        return errors
+    }
+
+    // Validations 
+    if(err.message.includes('user validation failed')) {
+        Object.values(err.errors).forEach(({ properties }) => {
+            errors[properties.path] = properties.message
+        })
+    }
+    return errors
+}
 
 const getSignup = (req, res) => {
-    res.send('Will be signup page')
+    res.send('Will be signup page');
 }
 const postSignup = async (req, res) => {
     const { email, password } = req.body;
 
     try {
         const user = await User.create({ email, password });
-    } catch (error) {
-        res.status(400).send('An error occurs while trying to create a new user')
+        res.status(201).json(user);
+    } catch (err) {
+        const errors = handleErrors(err);
+        res.status(404).json(errors)
     }
-    res.send('Here should post')
 }
 
 const loginGet = (req, res) => {
-    res.send('Login get') 
+    res.send('Login get'); 
 }
 
 const loginPost = (req, res) => {
-    res.send('New login request')
+    res.send('New login request');
 }
 
 module.exports = ({
@@ -27,4 +47,4 @@ module.exports = ({
     postSignup,
     loginGet,
     loginPost
-})
+});
